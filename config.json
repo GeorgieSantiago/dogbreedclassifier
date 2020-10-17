@@ -1,0 +1,15 @@
+{
+  "data_path": "C:/Users/emplo/Apps/RawDataStore/Dogbreeds",
+  "process": [
+    "annotations/Annotation/flat_annotations.xml" : {
+      "type": "xml",
+      "action": "convert",
+      "output": "json"
+    },
+    "flat_training_images": {
+      "type": "jpg",
+      "action": "resize",
+      "output": "300x300"
+    }
+  ]
+}
