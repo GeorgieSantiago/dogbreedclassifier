@@ -1,5 +1,3 @@
-import Setting
-
 class Settings():
     def __init__(self, settings=dict()):
         self.settings = settings
