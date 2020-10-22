@@ -13,10 +13,11 @@ from tqdm import tqdm
 
 hasCuda = cuda.is_available()
 device = device("cuda:0" if hasCuda else "cpu")
-if hasCuda:
+if cuda.is_available():
     print("Running with Cuda")
 else:
-    print("Running with CPU")
+    print('Cuda is not available. Performance will be based on available CPU')
+#    exit(-1)
 def showImg(img):
     parsedImg = img / 2 + 0.5 #Unnormalize the image
     img = np(parsedImg)
