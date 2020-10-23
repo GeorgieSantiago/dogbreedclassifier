@@ -1,5 +1,5 @@
 import sys
-from AI.Data.cleaner import generate, labels
+from AI.Data.cleaner import generate
 from pathlib import Path
 import json
 import argparse
@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 from torch import device, cuda, save
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from debugger import logger
 
 hasCuda = cuda.is_available()
 device = device("cuda:0" if hasCuda else "cpu")
@@ -17,12 +18,19 @@ if cuda.is_available():
     print("Running with Cuda")
 else:
     print('Cuda is not available. Performance will be based on available CPU')
-#    exit(-1)
-def showImg(img):
-    parsedImg = img / 2 + 0.5 #Unnormalize the image
-    img = np(parsedImg)
-    plt.imshow(np.transpose(img, (1, 3, 0)))
 
+def showImg(img):
+    try: 
+        #img = np.asarray(img)
+        #plt.imshow(img.shape( img.squeeze() ))
+#        a = np.asarray(img)
+        plt.imshow(img)
+        plt.figure()
+        plt.show()
+        #plt.imshow(np.transpose(parsedImg, (1, 3, 0)))
+    except ValueError as e:
+        logger.error(e)
+        exit(-1)
 
 def run():
     # Use a breakpoint in the code line below to debug your script.
@@ -32,13 +40,20 @@ def run():
     trainLoader = DataLoader(trainingDataset, batch_size=10, shuffle=True,
                                    num_workers=4, drop_last=False)
     for epoch in range(2):
-        running_loss=  0.0
-        for data in tqdm(trainLoader):
+        running_loss = 0.0
+        i = 0
+        for image, label in tqdm(trainLoader):
+            #Check the response of data and make sure its an 
             optimizer.zero_grad()
-
-            outputs = canisAI(data, labels)
-            loss = criterion(outputs, labels)
-            loss.backward()
+            if i % 100 == 0:
+                #showImg(trainingDataset.getImageRaw(i))
+                i += 1
+            try: 
+                outputs = canisAI.forward(image, label)
+                loss = criterion(outputs, label)
+                loss.backward()
+            except AttributeError as e:
+                logger.error(e)
             optimizer.step()
             running_loss = 0.0
         print('Finished Training')
