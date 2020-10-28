@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-
+import logging
 '''
 Figuring out this convoluted layers and what not
 So here is the equation
@@ -96,6 +96,13 @@ filter = 3x3
 
  
 '''
+rfh = logging.basicConfig(format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%d-%m-%Y:%H:%M:%S',
+    level=logging.DEBUG,
+    filename='logs/logs.canisAI.log')
+
+logger = logging.getLogger('my_app')
+
 class Canis(nn.Module):
     def __init__(self):
         super(Canis, self).__init__()
@@ -130,14 +137,26 @@ class Canis(nn.Module):
         self.fc3 = nn.Linear(1690, 845)
         self.fc4 = nn.Linear(845, 120)
 
-    def forward(self, x, labels):
+    def forward(self, x):
+        logger.debug("Information entering CNN -->")
+        logger.debug(x)
         x = self.pool(F.relu(self.conv1(x)))
+        logger.debug(x)
         x = self.pool(F.relu(self.conv2(x)))
-
+        logger.debug(x)
+        #Something is wrong with the pass from CNN to Dense Layers
+        #Shape [1, 54080] Invalid for input of size 48672
+        print("Information Exiting CNN -->")
         x = x.view(1, 54080)
+        logger.debug(x)
+        print("Information Entering Dense Layers")
         x = F.relu(self.fc1(x))
+        logger.debug(x)
         x = F.relu(self.fc2(x))
+        logger.debug(x)
         x = self.fc3(x)
+        logger.debug(x)
+        logger.debug("<--- Output")
         return x
 
 canisAI = Canis()

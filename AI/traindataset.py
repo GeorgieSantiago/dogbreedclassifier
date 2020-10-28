@@ -4,37 +4,45 @@ from pathlib import Path
 import cv2
 import torchvision.transforms as transforms
 from PIL import Image
+import PIL
 import numpy as np
 import json
+import logging
+import torch
 
-'''
-Def some issues in the data cleanup and process scripts. Need to fix this
-before we can train the AI fully but hey shes ready to learn at least!
-Welcome Canis!
-'''
+# asctime: time of the log was printed out
+# levelname: name of the log
+# datefmt: format the time of the log
+# give DEBUG log
+rfh = logging.basicConfig(format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%d-%m-%Y:%H:%M:%S',
+    level=logging.DEBUG,
+    filename='logs/logs.trainingdataset.log')
+
+logger = logging.getLogger('my_app')
 class DogTrainerSet(Dataset):
-    def __init__(self, main_dir):
+    def __init__(self, main_dir, labels):
         self.main_dir = main_dir
         all_imgs = os.listdir(main_dir)
-        self.dog_classes = json.load(open("traindata.json", 'r'))
         self.total_imgs = all_imgs
+
+        parsedLabels = []
+        for l in labels:
+            parsedLabels.append(l)
+        sentenceIdx = np.linspace(0,len(parsedLabels), len(parsedLabels), False)
+        torch_idx = torch.tensor(sentenceIdx)
+        self.labels =  parsedLabels
 
     def __len__(self):
         return len(self.total_imgs)
 
     def __getitem__(self, idx):
+        #IDFK somethings wrong here I guess fuck me.
         img_loc = Path(os.path.join(self.main_dir, self.total_imgs[idx]))
-        label = None
-        for dogCategory in self.dog_classes.keys():
-            for dogRef in self.dog_classes[dogCategory]:
-                for ref in dogRef:
-                    ref = json.loads(ref)
-                    filename = ref['filename'] + ".jpg"
-                    if filename == self.total_imgs[idx]:
-                        label = ref['name']
-        try:
+        try: 
             image = Image.open(img_loc)
-        except PIL.UnidentifiedImageError as e:
+        except Exception as e:
+            logger.error(e)
             return False
         image = transforms.ToTensor()(image)
         image = transforms.ToPILImage(mode='RGB')(image)
@@ -45,20 +53,19 @@ class DogTrainerSet(Dataset):
 #        print('transformed image: {}'.format(image_2_npArray))
 
         # transform the numpy array into the tensor
-        image_2_npArray_2_tensor = transforms.ToTensor()(image_2_npArray)
+        sample = transforms.ToTensor()(image_2_npArray)
 #        print('the shape of numpy array transformed into tensor: {}'.format(np.shape(image_2_npArray_2_tensor)))
 #        print('transformed numpy array: {}'.format(image_2_npArray_2_tensor))
-        if label != None:
-            sample = image_2_npArray_2_tensor
-            target = label
-            if target is not None:
-                #Idk I need you guys to be tensors?
-                target = transform.to_tensor(target)
-        else: 
-            os.remove(img_loc)
-            print("Could not find label")
-            return 0, 0
-        return sample, target
+        #You now have all the labels and they are pretty easy to mess with so.
+        #Lets return the correct sample and target :D
+        id = 0
+        return sample, self.labels
+        for k in self.labels:
+            for f in self.labels[k]:
+                if self.total_imgs[idx] == f:
+                    target = self.labels[k][f]
+                    return sample, 
+        
 
         
 
