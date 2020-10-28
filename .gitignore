@@ -1,5 +1,6 @@
-AI/Data/Annotation
+#AI/Data/Annotation
 AI/Data/FlatImgStore
+AI/Data/images
 .idea
 # Byte-compiled / optimized / DLL files
 __pycache__/
